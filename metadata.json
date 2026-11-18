@@ -1,0 +1,6 @@
+{
+  "name": "De Compritas con Paula - Gestión de Inventario y Ventas",
+  "description": "Sistema web integral para gestión de inventario, punto de venta multivariable, alertas de stock bajo en tiempo real y reportes automáticos para boutique femenina y personal shopper.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

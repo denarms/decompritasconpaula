@@ -1,0 +1,187 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Common helper functions
+    function isValidId(id) {
+      return id is string && id.size() <= 128;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isSuperAdmin() {
+      return isSignedIn()
+        && request.auth.token.email != null
+        && request.auth.token.email.lower() == 'denarms@gmail.com'
+        && request.auth.token.email_verified == true;
+    }
+
+    function isDbAdmin() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isAdmin() {
+      return isSuperAdmin() || isDbAdmin();
+    }
+
+    function hasPreauthAdminRole() {
+      return isSignedIn()
+        && request.auth.token.email != null
+        && exists(/databases/$(database)/documents/users/$(('preauth_' + request.auth.token.email.lower().replace('[^a-zA-Z0-9]', '_'))))
+        && get(/databases/$(database)/documents/users/$(('preauth_' + request.auth.token.email.lower().replace('[^a-zA-Z0-9]', '_')))).data.role == 'admin';
+    }
+
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['uid', 'email', 'displayName', 'role'])
+        && data.keys().hasOnly(['uid', 'email', 'username', 'displayName', 'photoURL', 'role', 'authType', 'createdAt'])
+        && data.uid is string && data.uid.size() > 0 && data.uid.size() <= 128
+        && data.email is string && data.email.size() > 0 && data.email.size() <= 120
+        && data.displayName is string && data.displayName.size() <= 100
+        && data.role in ['admin', 'cashier']
+        && (!('username' in data) || (data.username is string && data.username.size() <= 80))
+        && (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 500))
+        && (!('authType' in data) || (data.authType in ['google', 'password']))
+        && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 50));
+    }
+
+    function isValidProduct(data) {
+      return data.keys().hasAll(['name', 'sku', 'category', 'salePrice', 'stock', 'minStockAlert', 'status'])
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 150
+        && data.sku is string && data.sku.size() > 0 && data.sku.size() <= 60
+        && data.category is string && data.category.size() <= 60
+        && data.salePrice is number && data.salePrice >= 0
+        && data.stock is number
+        && data.minStockAlert is number && data.minStockAlert >= 0
+        && data.status in ['active', 'archived']
+        && (!('brand' in data) || (data.brand is string && data.brand.size() <= 80))
+        && (!('size' in data) || (data.size is string && data.size.size() <= 30))
+        && (!('colorOrShade' in data) || (data.colorOrShade is string && data.colorOrShade.size() <= 50))
+        && (!('costPrice' in data) || (data.costPrice is number && data.costPrice >= 0))
+        && (!('imageUrl' in data) || (data.imageUrl is string && data.imageUrl.size() <= 250000))
+        && (!('description' in data) || (data.description is string && data.description.size() <= 500));
+    }
+
+    function isValidCustomer(data) {
+      return data.keys().hasAll(['name', 'createdAt'])
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 120
+        && (!('phone' in data) || (data.phone is string && data.phone.size() <= 40))
+        && (!('email' in data) || (data.email is string && data.email.size() <= 100))
+        && (!('city' in data) || (data.city is string && data.city.size() <= 80))
+        && (!('notes' in data) || (data.notes is string && data.notes.size() <= 300))
+        && (!('totalPurchasesCount' in data) || (data.totalPurchasesCount is number && data.totalPurchasesCount >= 0))
+        && (!('totalSpent' in data) || (data.totalSpent is number && data.totalSpent >= 0));
+    }
+
+    function isValidSale(data) {
+      return data.keys().hasAll(['receiptNumber', 'totalItemsCount', 'totalAmount', 'paymentMethod', 'sellerId', 'createdAt'])
+        && data.receiptNumber is string && data.receiptNumber.size() <= 40
+        && data.totalItemsCount is number && data.totalItemsCount > 0
+        && data.totalAmount is number && data.totalAmount >= 0
+        && data.paymentMethod is string && data.paymentMethod.size() <= 50
+        && data.sellerId == request.auth.uid
+        && data.items is list && data.items.size() > 0 && data.items.size() <= 100
+        && (!('customerId' in data) || (data.customerId is string && data.customerId.size() <= 128))
+        && (!('customerName' in data) || (data.customerName is string && data.customerName.size() <= 100))
+        && (!('customerPhone' in data) || (data.customerPhone is string && data.customerPhone.size() <= 40))
+        && (!('sellerName' in data) || (data.sellerName is string && data.sellerName.size() <= 100))
+        && (!('sellerEmail' in data) || (data.sellerEmail is string && data.sellerEmail.size() <= 120))
+        && (!('sellerRole' in data) || (data.sellerRole in ['admin', 'cashier']))
+        && (!('amountReceived' in data) || (data.amountReceived is number && data.amountReceived >= 0))
+        && (!('changeDue' in data) || (data.changeDue is number && data.changeDue >= 0))
+        && (!('notes' in data) || (data.notes is string && data.notes.size() <= 300));
+    }
+
+    function isValidInventoryLog(data) {
+      return data.keys().hasAll(['productId', 'productName', 'changeType', 'quantityDelta', 'newStock', 'createdAt'])
+        && data.productId is string && data.productId.size() <= 128
+        && data.productName is string && data.productName.size() <= 150
+        && data.changeType is string && data.changeType.size() <= 40
+        && data.quantityDelta is number
+        && data.newStock is number
+        && (!('reason' in data) || (data.reason is string && data.reason.size() <= 200))
+        && (!('performedBy' in data) || (data.performedBy is string && data.performedBy.size() <= 100));
+    }
+
+    // Products catalog: admins manage catalog; staff can update stock during sales
+    match /products/{productId} {
+      allow read: if isSignedIn();
+      allow create: if isAdmin() && isValidId(productId) && isValidProduct(incoming());
+      allow update: if isSignedIn() && isValidId(productId) && isValidProduct(incoming())
+        && (isAdmin() || incoming().diff(existing()).affectedKeys().hasOnly(['stock', 'updatedAt']));
+      allow delete: if isAdmin();
+    }
+
+    // Customers directory: staff can manage and delete customer records
+    match /customers/{customerId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(customerId) && isValidCustomer(incoming());
+      allow update: if isSignedIn() && isValidId(customerId) && isValidCustomer(incoming());
+      allow delete: if isSignedIn();
+    }
+
+    // Sales transactions: staff can create; admins can delete/void test sales
+    match /sales/{saleId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(saleId) && isValidSale(incoming());
+      allow update: if false; // Sales are immutable once recorded
+      allow delete: if isAdmin();
+    }
+
+    // Inventory logs: audit trails
+    match /inventory_logs/{logId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(logId) && isValidInventoryLog(incoming());
+      allow update: if false; // Audit logs are immutable
+      allow delete: if isAdmin();
+    }
+
+    // Users and roles: strict privilege protection (cashiers cannot self-promote to admin)
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && (
+        request.auth.uid == userId ||
+        isAdmin() ||
+        (userId.matches('^preauth_.*') && request.auth.token.email != null && (resource == null || existing().email == request.auth.token.email.lower()))
+      );
+      allow list: if isAdmin();
+      allow create: if isSignedIn() && isValidId(userId) && isValidUserProfile(incoming()) && (
+        isAdmin() ||
+        (request.auth.uid == userId && incoming().uid == request.auth.uid && (
+          incoming().role == 'cashier' ||
+          isSuperAdmin() ||
+          hasPreauthAdminRole()
+        ))
+      );
+      allow update: if isSignedIn() && isValidId(userId) && isValidUserProfile(incoming()) && (
+        (isAdmin() && !(existing().email.lower() == 'denarms@gmail.com' && incoming().role != 'admin')) ||
+        (request.auth.uid == userId
+          && incoming().role == existing().role
+          && incoming().uid == existing().uid
+          && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL']))
+      );
+      allow delete: if (isAdmin() && existing().email.lower() != 'denarms@gmail.com')
+        || (isSignedIn() && userId.matches('^preauth_.*') && request.auth.token.email != null && existing().email == request.auth.token.email.lower());
+    }
+
+    match /admins/{adminId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+  }
+}

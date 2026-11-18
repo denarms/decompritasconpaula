@@ -1,0 +1,341 @@
+{
+  "entities": {
+    "Customer": {
+      "title": "Customer",
+      "description": "Ficha y registro de clientes para historial de compras y contacto WhatsApp.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Nombre y apellido del cliente",
+          "maxLength": 120
+        },
+        "phone": {
+          "type": "string",
+          "description": "Número de teléfono o WhatsApp",
+          "maxLength": 40
+        },
+        "email": {
+          "type": "string",
+          "description": "Correo electrónico opcional",
+          "maxLength": 100
+        },
+        "city": {
+          "type": "string",
+          "description": "Ciudad de residencia",
+          "maxLength": 80
+        },
+        "notes": {
+          "type": "string",
+          "description": "Preferencias de prendas, tallas habituales o notas",
+          "maxLength": 300
+        },
+        "totalPurchasesCount": {
+          "type": "number",
+          "description": "Total de compras realizadas"
+        },
+        "totalSpent": {
+          "type": "number",
+          "description": "Monto total acumulado en compras"
+        },
+        "lastPurchaseAt": {
+          "type": "string",
+          "description": "Fecha de última compra"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Fecha de registro"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Fecha de última modificación"
+        }
+      },
+      "required": ["name", "createdAt"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Artículos de boutique femenina, ropa, cosméticos, calzados y accesorios.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Nombre del producto",
+          "maxLength": 150
+        },
+        "sku": {
+          "type": "string",
+          "description": "Código de barras o identificador único",
+          "maxLength": 60
+        },
+        "category": {
+          "type": "string",
+          "description": "Categoría del artículo de dama",
+          "maxLength": 60
+        },
+        "brand": {
+          "type": "string",
+          "description": "Marca o diseñador",
+          "maxLength": 80
+        },
+        "size": {
+          "type": "string",
+          "description": "Talla o presentación (XS, S, M, L, etc.)",
+          "maxLength": 30
+        },
+        "colorOrShade": {
+          "type": "string",
+          "description": "Color o tono de cosmético/prenda",
+          "maxLength": 50
+        },
+        "costPrice": {
+          "type": "number",
+          "description": "Precio de adquisición o costo unitario"
+        },
+        "salePrice": {
+          "type": "number",
+          "description": "Precio de venta al público"
+        },
+        "stock": {
+          "type": "number",
+          "description": "Cantidad disponible en inventario"
+        },
+        "minStockAlert": {
+          "type": "number",
+          "description": "Nivel mínimo para disparo de alerta de stock bajo"
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL o foto en base64 del producto",
+          "maxLength": 250000
+        },
+        "description": {
+          "type": "string",
+          "description": "Detalles o notas del producto",
+          "maxLength": 500
+        },
+        "status": {
+          "type": "string",
+          "description": "Estado activo o archivado",
+          "enum": ["active", "archived"]
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Fecha y hora de creación ISO"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Fecha y hora de última modificación"
+        }
+      },
+      "required": ["name", "sku", "category", "salePrice", "stock", "minStockAlert", "status"]
+    },
+    "Sale": {
+      "title": "Sale",
+      "description": "Registro de transacción de venta de uno o varios materiales/artículos.",
+      "type": "object",
+      "properties": {
+        "receiptNumber": {
+          "type": "string",
+          "description": "Código consecutivo de recibo/ticket",
+          "maxLength": 40
+        },
+        "customerId": {
+          "type": "string",
+          "description": "ID del cliente registrado",
+          "maxLength": 128
+        },
+        "customerName": {
+          "type": "string",
+          "description": "Nombre del cliente",
+          "maxLength": 100
+        },
+        "customerPhone": {
+          "type": "string",
+          "description": "Teléfono celular para WhatsApp",
+          "maxLength": 40
+        },
+        "items": {
+          "type": "array",
+          "description": "Lista de artículos vendidos en esta transacción"
+        },
+        "totalItemsCount": {
+          "type": "number",
+          "description": "Total de prendas y productos vendidos"
+        },
+        "subtotal": {
+          "type": "number",
+          "description": "Subtotal antes de descuentos"
+        },
+        "discount": {
+          "type": "number",
+          "description": "Descuento aplicado en la compra"
+        },
+        "totalAmount": {
+          "type": "number",
+          "description": "Monto total cobrado"
+        },
+        "totalCost": {
+          "type": "number",
+          "description": "Costo total acumulado de las prendas vendidas"
+        },
+        "paymentMethod": {
+          "type": "string",
+          "description": "Método de pago utilizado",
+          "maxLength": 50
+        },
+        "amountReceived": {
+          "type": "number",
+          "description": "Monto en efectivo entregado por el cliente"
+        },
+        "changeDue": {
+          "type": "number",
+          "description": "Cambio o vuelto entregado al cliente"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Observaciones adicionales de la venta",
+          "maxLength": 300
+        },
+        "sellerId": {
+          "type": "string",
+          "description": "UID de quien registró la venta",
+          "maxLength": 128
+        },
+        "sellerName": {
+          "type": "string",
+          "description": "Nombre de la vendedora o personal shopper",
+          "maxLength": 100
+        },
+        "sellerEmail": {
+          "type": "string",
+          "description": "Correo de la vendedora",
+          "maxLength": 100
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Fecha y hora de la transacción"
+        }
+      },
+      "required": ["receiptNumber", "totalItemsCount", "totalAmount", "paymentMethod", "sellerId", "createdAt"]
+    },
+    "InventoryLog": {
+      "title": "InventoryLog",
+      "description": "Registro de cambios de stock para trazabilidad y auditoría.",
+      "type": "object",
+      "properties": {
+        "productId": {
+          "type": "string",
+          "description": "ID del producto modificado",
+          "maxLength": 128
+        },
+        "productName": {
+          "type": "string",
+          "description": "Nombre del producto",
+          "maxLength": 150
+        },
+        "changeType": {
+          "type": "string",
+          "description": "Tipo de movimiento: venta, reabastecimiento, ajuste",
+          "maxLength": 40
+        },
+        "quantityDelta": {
+          "type": "number",
+          "description": "Variación numérica de inventario"
+        },
+        "previousStock": {
+          "type": "number",
+          "description": "Stock previo al cambio"
+        },
+        "newStock": {
+          "type": "number",
+          "description": "Stock resultante tras el cambio"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Motivo del cambio o ID de ticket",
+          "maxLength": 200
+        },
+        "performedBy": {
+          "type": "string",
+          "description": "Usuario responsable",
+          "maxLength": 100
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Fecha y hora del registro"
+        }
+      },
+      "required": ["productId", "productName", "changeType", "quantityDelta", "newStock", "createdAt"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Perfil y rol de usuario del sistema.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "UID de Firebase Authentication",
+          "maxLength": 128
+        },
+        "email": {
+          "type": "string",
+          "description": "Correo electrónico",
+          "maxLength": 120
+        },
+        "username": {
+          "type": "string",
+          "description": "Nombre de usuario o alias para cuentas con contraseña",
+          "maxLength": 80
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Nombre visible",
+          "maxLength": 100
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "URL de foto de perfil",
+          "maxLength": 500
+        },
+        "role": {
+          "type": "string",
+          "description": "Rol: admin o cashier (cajero / atencion al cliente)",
+          "enum": ["admin", "cashier"]
+        },
+        "authType": {
+          "type": "string",
+          "description": "Método de autenticación: google o password",
+          "enum": ["google", "password"]
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Fecha de registro"
+        }
+      },
+      "required": ["uid", "email", "displayName", "role"]
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Catálogo completo de productos con stock en tiempo real"
+    },
+    "/sales/{saleId}": {
+      "schema": "Sale",
+      "description": "Historial de ventas y tickets generados"
+    },
+    "/customers/{customerId}": {
+      "schema": "Customer",
+      "description": "Directorio de clientes registrados y sus compras"
+    },
+    "/inventory_logs/{logId}": {
+      "schema": "InventoryLog",
+      "description": "Logs de auditoría y movimientos de inventario"
+    },
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Perfiles y roles de los operadores del sistema"
+    }
+  }
+}
